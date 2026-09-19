@@ -8,3 +8,5 @@ export * from './app-skeleton';
 export * from './app-modal';
 export * from './state-view';
 export * from './collapsible';
+export * from './theme-toggle';
+

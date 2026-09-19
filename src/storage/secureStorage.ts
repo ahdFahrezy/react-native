@@ -101,4 +101,22 @@ export class SecureStorage {
   static async removeUserSession(): Promise<void> {
     return this.deleteItem('auth_user_session');
   }
+
+  /**
+   * Convenience method to retrieve persisted theme mode ('system', 'light', 'dark').
+   */
+  static async getThemeMode(): Promise<'system' | 'light' | 'dark' | null> {
+    const raw = await this.getItem('app_theme_mode');
+    if (raw === 'system' || raw === 'light' || raw === 'dark') {
+      return raw;
+    }
+    return null;
+  }
+
+  /**
+   * Convenience method to persist theme mode.
+   */
+  static async setThemeMode(mode: 'system' | 'light' | 'dark'): Promise<void> {
+    return this.setItem('app_theme_mode', mode);
+  }
 }

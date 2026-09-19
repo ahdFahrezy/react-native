@@ -19,6 +19,7 @@ import { AppBadge } from '@/components/ui/app-badge';
 import { AppDivider } from '@/components/ui/app-divider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { useTheme } from '@/hooks/use-theme';
@@ -26,23 +27,27 @@ import { useTheme } from '@/hooks/use-theme';
 export default function LoginScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const { login, isAuthenticated, isLoading, error, clearError } = useAuth();
+  const { login, isAuthenticated, user, isLoading, error, clearError } = useAuth();
 
   const [email, setEmail] = useState('admin@example.com');
   const [password, setPassword] = useState('password123');
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'dev' | 'custom'>('admin');
+  const [selectedRole, setSelectedRole] = useState<'admin' | 'student' | 'custom'>('admin');
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(true);
 
-  // Auto-redirect if session is active
+  // Auto-redirect based on role if session is active
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/home');
+      if (user?.role === 'admin') {
+        router.replace('/home');
+      } else {
+        router.replace('/admissions');
+      }
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, user, router]);
 
-  const handleSelectRole = (role: 'admin' | 'dev') => {
+  const handleSelectRole = (role: 'admin' | 'student') => {
     setSelectedRole(role);
     clearError();
     setFormError(null);
@@ -50,7 +55,7 @@ export default function LoginScreen() {
       setEmail('admin@example.com');
       setPassword('password123');
     } else {
-      setEmail('developer@example.com');
+      setEmail('student@example.com');
       setPassword('password123');
     }
   };
@@ -79,7 +84,11 @@ export default function LoginScreen() {
 
     try {
       await login({ email: trimmedEmail, password, rememberMe });
-      router.replace('/home');
+      if (trimmedEmail.toLowerCase().includes('admin')) {
+        router.replace('/home');
+      } else {
+        router.replace('/admissions');
+      }
     } catch {
       // Error handled by AuthContext
     }
@@ -90,7 +99,7 @@ export default function LoginScreen() {
     setFormError(null);
     try {
       await login({ email: 'guest@example.com', password: 'password123', rememberMe: false });
-      router.replace('/home');
+      router.replace('/admissions');
     } catch {
       // Error handled by AuthContext
     }
@@ -113,6 +122,11 @@ export default function LoginScreen() {
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
+              {/* Theme Toggle Bar */}
+              <View style={styles.topToggleRow}>
+                <ThemeToggle />
+              </View>
+
               {/* Main Card Container */}
               <View
                 style={[
@@ -129,55 +143,51 @@ export default function LoginScreen() {
                 {/* Brand Header */}
                 <View style={styles.brandHeader}>
                   <View style={styles.logoBadge}>
-                    <Image
-                      source={require('@/assets/images/expo-logo.png')}
-                      style={styles.logoImage}
-                      resizeMode="contain"
-                    />
+                    <ThemedText style={{ fontSize: 26 }}>🎓</ThemedText>
                   </View>
-                  <ThemedText style={styles.brandTitle}>Welcome Back</ThemedText>
+                  <ThemedText style={styles.brandTitle}>EduCMS Portal</ThemedText>
                   <ThemedText style={styles.brandSubtitle}>
-                    Sign in to your account or pick a demo profile
+                    Bintang Bangsa School Administration
                   </ThemedText>
                 </View>
 
                 {/* Demo Quick-Select Tabs */}
                 <View style={styles.demoSection}>
-                  <ThemedText style={styles.demoLabel}>Demo Accounts</ThemedText>
+                  <ThemedText style={styles.demoLabel}>Select Account Role</ThemedText>
                   <View style={styles.demoButtonGroup}>
                     <Pressable
                       onPress={() => handleSelectRole('admin')}
                       style={[
                         styles.demoButton,
                         selectedRole === 'admin' && styles.demoButtonActive,
-                        { borderColor: selectedRole === 'admin' ? '#007AFF' : 'rgba(255, 255, 255, 0.12)' },
+                        { borderColor: selectedRole === 'admin' ? '#0D9488' : 'rgba(255, 255, 255, 0.12)' },
                       ]}
                     >
                       <ThemedText style={styles.demoButtonIcon}>👑</ThemedText>
                       <View style={styles.demoButtonTextCol}>
-                        <ThemedText style={styles.demoButtonRole}>Admin Account</ThemedText>
-                        <ThemedText style={styles.demoButtonEmail}>admin@example.com</ThemedText>
+                        <ThemedText style={styles.demoButtonRole}>CMS Administrator</ThemedText>
+                        <ThemedText style={styles.demoButtonEmail}>admin@example.com (Verification & Stats)</ThemedText>
                       </View>
                       {selectedRole === 'admin' && (
-                        <AppBadge label="Active" variant="primary" size="sm" dot />
+                        <AppBadge label="Admin View" variant="primary" size="sm" dot />
                       )}
                     </Pressable>
 
                     <Pressable
-                      onPress={() => handleSelectRole('dev')}
+                      onPress={() => handleSelectRole('student')}
                       style={[
                         styles.demoButton,
-                        selectedRole === 'dev' && styles.demoButtonActive,
-                        { borderColor: selectedRole === 'dev' ? '#007AFF' : 'rgba(255, 255, 255, 0.12)' },
+                        selectedRole === 'student' && styles.demoButtonActive,
+                        { borderColor: selectedRole === 'student' ? '#0D9488' : 'rgba(255, 255, 255, 0.12)' },
                       ]}
                     >
-                      <ThemedText style={styles.demoButtonIcon}>⚡</ThemedText>
+                      <ThemedText style={styles.demoButtonIcon}>🎓</ThemedText>
                       <View style={styles.demoButtonTextCol}>
-                        <ThemedText style={styles.demoButtonRole}>Developer Account</ThemedText>
-                        <ThemedText style={styles.demoButtonEmail}>developer@example.com</ThemedText>
+                        <ThemedText style={styles.demoButtonRole}>Student Applicant</ThemedText>
+                        <ThemedText style={styles.demoButtonEmail}>student@example.com (PPDB Online Form)</ThemedText>
                       </View>
-                      {selectedRole === 'dev' && (
-                        <AppBadge label="Active" variant="success" size="sm" dot />
+                      {selectedRole === 'student' && (
+                        <AppBadge label="Student View" variant="success" size="sm" dot />
                       )}
                     </Pressable>
                   </View>
@@ -508,4 +518,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 16,
   },
+  topToggleRow: {
+    alignSelf: 'flex-end',
+    marginBottom: Spacing.two,
+  },
 });
+

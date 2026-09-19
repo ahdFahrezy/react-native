@@ -15,13 +15,25 @@ export const DUMMY_USERS: Record<string, { user: AuthUser; passwordHash: string 
     },
     passwordHash: 'password123',
   },
+  'student@example.com': {
+    user: {
+      id: 'usr_student_002',
+      email: 'student@example.com',
+      name: 'Aditya Pratama (Applicant)',
+      role: 'user',
+      avatarUrl:
+        'https://lh3.googleusercontent.com/aida-public/AB6AXuDRXFBxUjCpGdRbBtDglrUI9r0UObWZSKwToACymGmYCvcXOI5jJmOY1K9jnXrPMnGyN7wRgSxzlV2wWKNUnA5YXNh2aBj5dHELN0nXjiAJmMnDW9ozGQoLHG0BJh_XdSHFEMToNfXdjT61N3TpAj1uIXV0XV3WIlL67H51vIBWot9QxN9TZBbQQITht79m_kuWxNu3VgKan7I9uCA0Utl7-T_4ZZtO_-0GzoGMmFAFBW7Dx82Ixeb0',
+    },
+    passwordHash: 'password123',
+  },
   'developer@example.com': {
     user: {
-      id: 'usr_dev_002',
-      email: 'developer@example.com',
-      name: 'Mobile Developer',
+      id: 'usr_student_002',
+      email: 'student@example.com',
+      name: 'Aditya Pratama (Applicant)',
       role: 'user',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+      avatarUrl:
+        'https://lh3.googleusercontent.com/aida-public/AB6AXuDRXFBxUjCpGdRbBtDglrUI9r0UObWZSKwToACymGmYCvcXOI5jJmOY1K9jnXrPMnGyN7wRgSxzlV2wWKNUnA5YXNh2aBj5dHELN0nXjiAJmMnDW9ozGQoLHG0BJh_XdSHFEMToNfXdjT61N3TpAj1uIXV0XV3WIlL67H51vIBWot9QxN9TZBbQQITht79m_kuWxNu3VgKan7I9uCA0Utl7-T_4ZZtO_-0GzoGMmFAFBW7Dx82Ixeb0',
     },
     passwordHash: 'password123',
   },

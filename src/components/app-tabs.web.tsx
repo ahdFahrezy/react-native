@@ -8,25 +8,40 @@ import {
 } from 'expo-router/ui';
 import { SymbolView } from 'expo-symbols';
 import { Pressable, useColorScheme, View, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { ExternalLink } from './external-link';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
+import { ThemeToggle } from './ui/theme-toggle';
 
-import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function AppTabs() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+
   return (
     <Tabs>
       <TabSlot style={{ height: '100%' }} />
       <TabList asChild>
         <CustomTabList>
-          <TabTrigger name="home" href="/home" asChild>
-            <TabButton>Home</TabButton>
+          {isAdmin && (
+            <TabTrigger name="home" href="/home" asChild>
+              <TabButton>Dashboard</TabButton>
+            </TabTrigger>
+          )}
+
+          <TabTrigger name="admissions" href="/admissions" asChild>
+            <TabButton>{isAdmin ? 'PPDB Portal' : 'PPDB Registration'}</TabButton>
           </TabTrigger>
+
           <TabTrigger name="explore" href="/explore" asChild>
-            <TabButton>Explore</TabButton>
+            <TabButton>Articles</TabButton>
           </TabTrigger>
+
           <TabTrigger name="template-demo" href="/template-demo" asChild>
             <TabButton>Templates</TabButton>
           </TabTrigger>
@@ -37,12 +52,19 @@ export default function AppTabs() {
 }
 
 export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+  const theme = useTheme();
+
   return (
     <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
       <ThemedView
         type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
         style={styles.tabButtonView}>
-        <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
+        <ThemedText
+          type="small"
+          style={{
+            color: isFocused ? theme.text : theme.textSecondary,
+            fontWeight: isFocused ? '700' : '500',
+          }}>
           {children}
         </ThemedText>
       </ThemedView>
@@ -51,28 +73,55 @@ export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps
 }
 
 export function CustomTabList(props: TabListProps) {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+  const theme = useTheme();
+  const { user, login, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/');
+  };
+
+  const handleToggleRole = async () => {
+    if (user?.role === 'admin') {
+      await login({ email: 'student@example.com', password: 'password123' });
+      router.replace('/admissions');
+    } else {
+      await login({ email: 'admin@example.com', password: 'password123' });
+      router.replace('/home');
+    }
+  };
 
   return (
     <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
+      <ThemedView
+        type="backgroundElement"
+        style={[
+          styles.innerContainer,
+          { borderColor: theme.border, borderWidth: 1 },
+        ]}>
         <ThemedText type="smallBold" style={styles.brandText}>
-          Expo Starter
+          🎓 EduCMS
         </ThemedText>
 
         {props.children}
 
-        <ExternalLink href="https://docs.expo.dev" asChild>
-          <Pressable style={styles.externalPressable}>
-            <ThemedText type="link">Docs</ThemedText>
-            <SymbolView
-              tintColor={colors.text}
-              name={{ ios: 'arrow.up.right.square', web: 'link' }}
-              size={12}
-            />
+        <View style={styles.rightControls}>
+          <Pressable
+            onPress={handleToggleRole}
+            style={({ pressed }) => [styles.userPill, pressed && { opacity: 0.7 }]}
+          >
+            <ThemedText style={styles.userRoleText}>
+              {user?.role === 'admin' ? '👑 Admin (Switch ➔)' : '🎓 Student (Switch ➔)'}
+            </ThemedText>
           </Pressable>
-        </ExternalLink>
+
+          <ThemeToggle />
+
+          <Pressable onPress={handleLogout} style={styles.logoutBtn}>
+            <ThemedText style={styles.logoutText}>Exit</ThemedText>
+          </Pressable>
+        </View>
       </ThemedView>
     </View>
   );
@@ -114,5 +163,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.one,
     marginLeft: Spacing.three,
+  },
+  rightControls: {
+    marginLeft: 'auto',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  userPill: {
+    paddingHorizontal: Spacing.two,
+    paddingVertical: 3,
+    borderRadius: 8,
+    backgroundColor: 'rgba(13, 148, 136, 0.15)',
+  },
+  userRoleText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0D9488',
+  },
+  logoutBtn: {
+    paddingHorizontal: Spacing.two,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+  },
+  logoutText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#EF4444',
   },
 });
