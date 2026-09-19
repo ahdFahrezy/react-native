@@ -1,4 +1,5 @@
 import { apiClient } from '@/api/apiClient';
+import { healthDummyApi, USE_DUMMY_API } from '@/dummy';
 import { HealthRawResponse } from '@/types/health.types';
 
 export interface IHealthRepository {
@@ -7,11 +8,15 @@ export interface IHealthRepository {
 
 export class HealthRepository implements IHealthRepository {
   /**
-   * Mengambil data status server dari endpoint API.
-   * Repository mengabstraksi sumber data (remote network vs cache).
+   * Fetches server status data from API endpoint or dummy mock.
+   * Abstracts data source (remote network vs dummy cache).
    */
   async fetchHealth(): Promise<{ data: HealthRawResponse; responseTimeMs: number; endpoint: string }> {
-    const endpoint = '/get'; // Standar query endpoint di httpbin (bisa diganti '/health' untuk server kustom)
+    if (USE_DUMMY_API) {
+      return healthDummyApi.fetchHealth();
+    }
+
+    const endpoint = '/get';
     const startTime = Date.now();
 
     const data = await apiClient.get<HealthRawResponse>(endpoint);
@@ -25,5 +30,4 @@ export class HealthRepository implements IHealthRepository {
   }
 }
 
-// Export singleton instance untuk kemudahan pakai di Service
 export const healthRepository = new HealthRepository();

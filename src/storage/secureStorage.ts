@@ -74,4 +74,31 @@ export class SecureStorage {
   static async removeAuthToken(): Promise<void> {
     return this.deleteItem(AUTH_TOKEN_KEY);
   }
+
+  /**
+   * Convenience method to retrieve the stored user session object.
+   */
+  static async getUserSession<T>(): Promise<T | null> {
+    const raw = await this.getItem('auth_user_session');
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Convenience method to persist user session data.
+   */
+  static async setUserSession<T>(user: T): Promise<void> {
+    return this.setItem('auth_user_session', JSON.stringify(user));
+  }
+
+  /**
+   * Convenience method to clear the stored user session.
+   */
+  static async removeUserSession(): Promise<void> {
+    return this.deleteItem('auth_user_session');
+  }
 }

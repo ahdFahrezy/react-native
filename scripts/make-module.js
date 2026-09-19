@@ -70,6 +70,7 @@ export interface Create${PascalCase}DTO {
 writeSafe(
   `src/repositories/${camelCase}Repository.ts`,
   `import { apiClient } from '@/api/apiClient';
+import { ${camelCase}DummyApi, USE_DUMMY_API } from '@/dummy';
 import { ${PascalCase}, Create${PascalCase}DTO } from '@/types/${kebabCase}.types';
 
 export interface I${PascalCase}Repository {
@@ -80,14 +81,23 @@ export interface I${PascalCase}Repository {
 
 export class ${PascalCase}Repository implements I${PascalCase}Repository {
   async getAll(): Promise<${PascalCase}[]> {
+    if (USE_DUMMY_API) {
+      return ${camelCase}DummyApi.getAll();
+    }
     return apiClient.get<${PascalCase}[]>('/${kebabCase}s');
   }
 
   async getById(id: string): Promise<${PascalCase}> {
+    if (USE_DUMMY_API) {
+      return ${camelCase}DummyApi.getById(id);
+    }
     return apiClient.get<${PascalCase}>(\`/${kebabCase}s/\${id}\`);
   }
 
   async create(payload: Create${PascalCase}DTO): Promise<${PascalCase}> {
+    if (USE_DUMMY_API) {
+      return ${camelCase}DummyApi.create(payload);
+    }
     return apiClient.post<${PascalCase}>('/${kebabCase}s', payload);
   }
 }
@@ -193,7 +203,7 @@ export function use${PascalCase}(autoFetch = true) {
 
 // 5. Screen Page
 writeSafe(
-  `src/app/${kebabCase}.tsx`,
+  `src/app/(app)/${kebabCase}.tsx`,
   `import React, { useState } from 'react';
 import { Alert } from 'react-native';
 import { ListScreenLayout } from '@/components/templates/list-screen-layout';
@@ -249,4 +259,64 @@ export default function ${PascalCase}Screen() {
 `
 );
 
-console.log(`\n🎉 Module ${PascalCase} successfully created with Single-Action Services!\n`);
+// 6. Dummy Mock API
+writeSafe(
+  `src/dummy/${kebabCase}.dummy.ts`,
+  `import { ${PascalCase}, Create${PascalCase}DTO } from '@/types/${kebabCase}.types';
+import { simulateDelay } from './helper';
+import { logger } from '@/utils/logger';
+
+const log = logger.createScope('${PascalCase}DummyApi');
+
+let mock${PascalCase}List: ${PascalCase}[] = [
+  { id: '1', name: 'Sample ${PascalCase} 1', createdAt: new Date().toISOString() },
+  { id: '2', name: 'Sample ${PascalCase} 2', createdAt: new Date().toISOString() },
+];
+
+export class ${PascalCase}DummyApi {
+  async getAll(): Promise<${PascalCase}[]> {
+    log.info('[DummyAPI] Fetching all ${kebabCase} items');
+    await simulateDelay(200);
+    return [...mock${PascalCase}List];
+  }
+
+  async getById(id: string): Promise<${PascalCase}> {
+    log.info(\`[DummyAPI] Fetching ${kebabCase} by id: \${id}\`);
+    await simulateDelay(150);
+    const item = mock${PascalCase}List.find((entry) => entry.id === id);
+    if (!item) {
+      throw new Error('${PascalCase} not found');
+    }
+    return item;
+  }
+
+  async create(payload: Create${PascalCase}DTO): Promise<${PascalCase}> {
+    log.info('[DummyAPI] Creating new ${kebabCase}', payload);
+    await simulateDelay(250);
+    const newItem: ${PascalCase} = {
+      id: String(Date.now()),
+      name: payload.name,
+      createdAt: new Date().toISOString(),
+    };
+    mock${PascalCase}List.unshift(newItem);
+    return newItem;
+  }
+}
+
+export const ${camelCase}DummyApi = new ${PascalCase}DummyApi();
+`
+);
+
+// 7. Register dummy export in src/dummy/index.ts
+const dummyIndexPath = path.join(ROOT_DIR, 'src/dummy/index.ts');
+if (fs.existsSync(dummyIndexPath)) {
+  const currentContent = fs.readFileSync(dummyIndexPath, 'utf-8');
+  const exportStatement = `export * from './${kebabCase}.dummy';`;
+  if (!currentContent.includes(exportStatement)) {
+    fs.appendFileSync(dummyIndexPath, `${exportStatement}\n`, 'utf-8');
+    console.log(`  🔗 Registered export in src/dummy/index.ts`);
+  }
+}
+
+console.log(`\n🎉 Module ${PascalCase} successfully created with Single-Action Services and Dummy API!\n`);
+

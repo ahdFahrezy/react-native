@@ -110,3 +110,14 @@ To keep user interfaces consistent, accessible, and fast to develop, always use 
 
 ### Interactive Preview
 Preview all components and templates live by navigating to `/template-demo` (`src/app/template-demo.tsx`).
+
+---
+
+## 8. Dummy API Mocking Strategy (`src/dummy/`)
+To develop screens and test features before backend endpoints are built:
+- **Location**: Store all mock data and handlers in `src/dummy/<entity>.dummy.ts` and export them through `src/dummy/index.ts`.
+- **Toggle**: Use `USE_DUMMY_API` (configured via `process.env.EXPO_PUBLIC_USE_DUMMY_API !== 'false'`) inside repositories.
+- **Zero Network Errors**: Repositories MUST check `USE_DUMMY_API` first and delegate directly to the dummy API handler. Never trigger `apiClient` or remote network calls when dummy mode is enabled.
+- **Realistic Latency**: Use `simulateDelay(ms)` in dummy APIs to simulate realistic roundtrip delay (150ms–300ms).
+- **Module Generator**: Running `npm run make:module <name>` automatically scaffolds the corresponding dummy mock file and configures the repository to use it seamlessly.
+

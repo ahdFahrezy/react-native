@@ -48,7 +48,7 @@ export function AppInput({
               ? '#e5484d'
               : isFocused
               ? '#007AFF'
-              : 'transparent',
+              : theme.backgroundSelected,
           },
         ]}
       >
