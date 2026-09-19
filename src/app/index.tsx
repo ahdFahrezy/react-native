@@ -1,9 +1,11 @@
 import * as Device from 'expo-device';
 import { Platform, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 import { AnimatedIcon } from '@/components/animated-icon';
 import { HealthCard } from '@/components/health-card';
+import { AppButton } from '@/components/ui/app-button';
 import { HintRow } from '@/components/hint-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -30,6 +32,8 @@ function getDevMenuHint() {
 }
 
 export default function HomeScreen() {
+  const router = useRouter();
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -50,6 +54,13 @@ export default function HomeScreen() {
           </ThemedText>
 
           <HealthCard />
+
+          <AppButton
+            title="View UI Templates & Layout ➔"
+            variant="outline"
+            onPress={() => router.push('/template-demo')}
+            style={{ alignSelf: 'stretch' }}
+          />
 
           <ThemedView type="backgroundElement" style={styles.stepContainer}>
             <HintRow
