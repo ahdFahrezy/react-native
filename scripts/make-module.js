@@ -17,11 +17,17 @@ if (!moduleArg) {
   process.exit(1);
 }
 
-// Name formatting
-const rawName = moduleArg.toLowerCase().trim();
-const PascalCase = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-const camelCase = rawName;
-const kebabCase = rawName.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+// Name formatting supporting camelCase, kebab-case, snake_case, and spaced names
+const words = moduleArg
+  .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+  .replace(/[-_]+/g, ' ')
+  .trim()
+  .split(/\s+/)
+  .map((w) => w.toLowerCase());
+
+const PascalCase = words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+const camelCase = PascalCase.charAt(0).toLowerCase() + PascalCase.slice(1);
+const kebabCase = words.join('-');
 
 console.log(`\n🚀 Generating new module: ${PascalCase} (${kebabCase})...\n`);
 
@@ -188,57 +194,56 @@ export function use${PascalCase}(autoFetch = true) {
 // 5. Screen Page
 writeSafe(
   `src/app/${kebabCase}.tsx`,
-  `import React from 'react';
-import { ScreenLayout } from '@/components/templates/screen-layout';
+  `import React, { useState } from 'react';
+import { Alert } from 'react-native';
+import { ListScreenLayout } from '@/components/templates/list-screen-layout';
 import { AppCard } from '@/components/ui/app-card';
-import { StateView } from '@/components/ui/state-view';
+import { AppBadge } from '@/components/ui/app-badge';
 import { ThemedText } from '@/components/themed-text';
 import { use${PascalCase} } from '@/hooks/use-${kebabCase}';
+import { ${PascalCase} } from '@/types/${kebabCase}.types';
 
 export default function ${PascalCase}Screen() {
   const { data, loading, error, refetch } = use${PascalCase}();
+  const [searchQuery, setSearchQuery] = useState('');
 
-  if (loading && data.length === 0) {
-    return (
-      <ScreenLayout title="${PascalCase}s" showBackButton={true}>
-        <StateView type="loading" message="Loading ${kebabCase} data..." />
-      </ScreenLayout>
-    );
-  }
-
-  if (error && data.length === 0) {
-    return (
-      <ScreenLayout title="${PascalCase}s" showBackButton={true}>
-        <StateView
-          type="error"
-          message={error}
-          onRetry={refetch}
-        />
-      </ScreenLayout>
-    );
-  }
+  const filteredData = data.filter((item) =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <ScreenLayout
+    <ListScreenLayout<${PascalCase}>
       title="${PascalCase}s"
-      subtitle="Manage ${kebabCase} data"
+      subtitle="Manage ${kebabCase} records"
       showBackButton={true}
+      searchable={true}
+      searchPlaceholder="Search ${kebabCase}s..."
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+      data={filteredData}
+      keyExtractor={(item) => item.id}
+      loading={loading}
+      error={error}
+      onRetry={refetch}
+      refreshing={loading && data.length > 0}
       onRefresh={refetch}
-    >
-      {data.length === 0 ? (
-        <StateView
-          type="empty"
-          title="No ${PascalCase} Data"
-          message="No items have been created yet."
-        />
-      ) : (
-        data.map((item) => (
-          <AppCard key={item.id} title={item.name} subtitle={\`ID: \${item.id}\`}>
-            <ThemedText>Ready to use ${kebabCase} record.</ThemedText>
-          </AppCard>
-        ))
+      emptyTitle="No ${PascalCase} Items"
+      emptyMessage="No items found. Tap + to add a new ${kebabCase}."
+      onAddPress={() => Alert.alert('Add ${PascalCase}', 'Open create modal or screen')}
+      renderItem={({ item }) => (
+        <AppCard
+          title={item.name}
+          subtitle={\`ID: \${item.id}\`}
+          headerRight={<AppBadge label="Active" variant="success" size="sm" dot />}
+          onPress={() => Alert.alert('${PascalCase} Details', \`Selected item: \${item.name}\`)}
+        >
+          <ThemedText style={{ fontSize: 13, opacity: 0.7 }}>
+            Ready to use ${kebabCase} record.
+          </ThemedText>
+        </AppCard>
       )}
-    </ScreenLayout>
+      withBottomTabInset={true}
+    />
   );
 }
 `
